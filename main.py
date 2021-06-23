@@ -1,21 +1,37 @@
 #!/usr/bin/env python3
-import sqlite3
 import requests
 import json
 from dotenv import load_dotenv
 import os
+import mariadb
 
 load_dotenv()
 
 PI_IP = os.getenv("PI_IP")
 API_KEY = os.getenv("API_KEY")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWD = os.getenv("DB_PASSWD")
+DB_IP = os.getenv("DB_IP")
+DB_DATABASE = os.getenv("DB_DATABASE")
 
-conn = sqlite3.connect('database.db')
-c = conn.cursor()
+
+try:
+    conn = mariadb.connect(
+        user=DB_USER,
+        password=DB_PASSWD,
+        host=DB_IP,
+        port=3306,
+        database=DB_DATABASE
+
+    )
+except mariadb.Error as e:
+    print(f"Error connecting to MariaDB Platform: {e}")
+    exit()
 
 def scannet():
+    c = conn.cursor()
     print("[*] Creating table if it doesn't exist...")
-    c.execute('''CREATE TABLE IF NOT EXISTS network (addres,name,macaddr,maccompany)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS network (addres VARCHAR(255),name VARCHAR(255),macaddr VARCHAR(255),maccompany VARCHAR(255));''')
     headers = {
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0',
         'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -56,10 +72,10 @@ def scannet():
     print("[*] Network scan has completed and has been uploaded...")
 
 def client():
-    query = conn.execute('select distinct * from network')
-    fetch_query = query.fetchall()
+    cur = conn.cursor()
+    cur.execute('SELECT distinct * from network;')
     print("[*] Fetching results from database...")
-    for entry in fetch_query:
+    for entry in cur:
         host = None
         hostname = None
         macaddr = None
@@ -75,8 +91,8 @@ def client():
     conn.close()
 
 def main():
-    scannet()
-    #client()
+    #scannet()
+    client()
 
 
 if __name__ == "__main__":
