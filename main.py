@@ -98,6 +98,7 @@ def client():
         hostname = None
         macaddr = None
         maccompany = None
+        lastQuery = None
         if entry[0]:
             host = entry[0]
         if entry[1]:
@@ -106,6 +107,9 @@ def client():
             macaddr = entry[2]
         if entry[3]:
             maccompany = entry[3]
+        if entry[4]:
+            lastQuery = entry[4]
+        print(host,hostname,macaddr,maccompany,lastQuery)
     conn.close()
 
 def main():
