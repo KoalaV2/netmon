@@ -34,7 +34,7 @@ except mariadb.Error as e:
 def scannet():
     c = conn.cursor()
     print("[*] Creating table if it doesn't exist...")
-    c.execute('''CREATE TABLE IF NOT EXISTS network (addres VARCHAR(255),name VARCHAR(255),macaddr VARCHAR(255),maccompany VARCHAR(255), lastquery INT(255));''')
+    c.execute('''CREATE TABLE IF NOT EXISTS network (addres VARCHAR(255),name VARCHAR(255),macaddr VARCHAR(255),maccompany VARCHAR(255), lastquery INT(255), PRIMARY KEY(addres));''')
     headers = {
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0',
         'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -62,7 +62,7 @@ def scannet():
 
 
     for entry in json_data:
-        host = None
+        host = "Not found"
         hostname = None
         macaddr = None
         maccompany = None
@@ -85,7 +85,7 @@ def scannet():
             macaddr = entry['hwaddr']
         if entry['macVendor']:
             maccompany = entry['macVendor']
-        c.execute("insert into network values (?,?,?,?,?);", (host,hostname,macaddr,maccompany,lastQuery))
+        c.execute("replace into network values (?,?,?,?,?);", (host,hostname,macaddr,maccompany,lastQuery))
         conn.commit()
     print("[*] Network scan has completed and has been uploaded...")
 
