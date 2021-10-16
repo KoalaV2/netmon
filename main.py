@@ -29,7 +29,7 @@ try:
     )
 except mariadb.Error as e:
     print(f"Error connecting to MariaDB Platform: {e}")
-    exit()
+    # exit()
 
 def scannet():
     c = conn.cursor()
@@ -59,35 +59,38 @@ def scannet():
     print("[*] Sending data to database...")
 
     #print(f"{rd.years} years, {rd.months} months, {rd.days} days, {rd.hours} hours, {rd.minutes} minutes and {rd.seconds} seconds")
+    from alive_progress import alive_bar
 
-
-    for entry in json_data:
-        host = "Not found"
-        hostname = None
-        macaddr = None
-        maccompany = None
-        lastQuery = None
-        if entry['lastQuery']:
-            curr_time = time.time()
-            other_time = entry['lastQuery']
-            dt1 = datetime.datetime.fromtimestamp(other_time)
-            dt2 = datetime.datetime.fromtimestamp(curr_time)
-            rd = dateutil.relativedelta.relativedelta (dt2, dt1)
-            if rd.days >= 1:
-                pass
-            else:
-                lastQuery = entry['lastQuery']
-        if entry['ip']:
-            host = entry['ip'][0]
-        if entry['name']:
-            hostname = entry['name'][0]
-        if entry['hwaddr']:
-            macaddr = entry['hwaddr']
-        if entry['macVendor']:
-            maccompany = entry['macVendor']
-        c.execute("replace into network values (?,?,?,?,?);", (host,hostname,macaddr,maccompany,lastQuery))
-        conn.commit()
-    print("[*] Network scan has completed and has been uploaded...")
+    with alive_bar(len(json_data)) as bar:
+        for entry in json_data:
+            bar()
+            host = "Not found"
+            hostname = None
+            macaddr = None
+            maccompany = None
+            lastQuery = None
+            if entry['lastQuery']:
+                curr_time = time.time()
+                other_time = entry['lastQuery']
+                dt1 = datetime.datetime.fromtimestamp(other_time)
+                dt2 = datetime.datetime.fromtimestamp(curr_time)
+                rd = dateutil.relativedelta.relativedelta (dt2, dt1)
+                if rd.days >= 1:
+                    pass
+                else:
+                    lastQuery = entry['lastQuery']
+            if entry['ip']:
+                host = entry['ip'][0]
+                bar.text(host)
+            if entry['name']:
+                hostname = entry['name'][0]
+            if entry['hwaddr']:
+                macaddr = entry['hwaddr']
+            if entry['macVendor']:
+                maccompany = entry['macVendor']
+            c.execute("replace into network values (?,?,?,?,?);", (host,hostname,macaddr,maccompany,lastQuery))
+            conn.commit()
+        # print("[*] Network scan has completed and has been uploaded...")
 
 def client():
     cur = conn.cursor()
@@ -114,7 +117,7 @@ def client():
 
 def main():
     scannet()
-    #client()
+    # client()
 
 
 if __name__ == "__main__":
